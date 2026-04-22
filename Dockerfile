@@ -1,51 +1,56 @@
-ARG MINIFORGE_VERSION=22.9.0-2
+ARG MINIFORGE_VERSION=26.1.1-2
 ARG UBUNTU_VERSION=24.04
+ARG CONDA_ENV_PATH=/opt/conda/envs/hail
 
-FROM condaforge/mambaforge:${MINIFORGE_VERSION} AS builder
+FROM condaforge/miniforge3:${MINIFORGE_VERSION} AS builder
 
-RUN mamba create -qy -p /usr/local \
+ARG CONDA_ENV_PATH
+ARG HAIL_VERSION=0.2.138
+ARG PYTHON_VERSION=3.10
+ARG OPENJDK_VERSION=11
+
+RUN mamba create -qy -p ${CONDA_ENV_PATH} \
     -c conda-forge \
-    openjdk=11 \
-    python=3.10
+    openjdk=${OPENJDK_VERSION} \
+    pip \
+    python=${PYTHON_VERSION} && \
+    ${CONDA_ENV_PATH}/bin/pip install --no-cache-dir "hail==${HAIL_VERSION}" && \
+    mamba clean -afy
 
 FROM ubuntu:${UBUNTU_VERSION} AS final
-COPY --from=builder /usr/local /usr/local
 
-# Install system dependencies including libnss-wrapper
+ARG CONDA_ENV_PATH
+
+COPY --from=builder ${CONDA_ENV_PATH} ${CONDA_ENV_PATH}
+
+ENV CONDA_ENV_PATH="${CONDA_ENV_PATH}" \
+    PATH="${CONDA_ENV_PATH}/bin:${PATH}" \
+    NSS_WRAPPER_PASSWD=/tmp/passwd \
+    NSS_WRAPPER_GROUP=/tmp/group
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss-wrapper \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
-ARG HAIL_VERSION=0.2.133
-RUN pip install --no-cache-dir \
-    hail==${HAIL_VERSION}
-
-# Set up environment variables and a custom home directory for libnss-wrapper
-ENV NSS_WRAPPER_PASSWD=/tmp/passwd
-ENV NSS_WRAPPER_GROUP=/tmp/group
-
 RUN mkdir -p /tmp/bldocker && \
     chmod 777 /tmp/bldocker && \
-    echo '#!/bin/bash\n\
-        # Set up NSS Wrapper\n\
-        echo "bldocker:x:$(id -u):$(id -g):Custom User:/tmp/bldocker:/bin/bash" > "$NSS_WRAPPER_PASSWD"\n\
-        echo "bldocker:x:$(id -g):" > "$NSS_WRAPPER_GROUP"\n\
-        \n\
-        export LD_PRELOAD=libnss_wrapper.so\n\
-        \n\
-        exec "$@"\n' > /usr/local/bin/entrypoint.sh && \
+    printf '%s\n' \
+    '#!/bin/bash' \
+    'echo "bldocker:x:$(id -u):$(id -g):Custom User:/tmp/bldocker:/bin/bash" > "${NSS_WRAPPER_PASSWD}"' \
+    'echo "bldocker:x:$(id -g):" > "${NSS_WRAPPER_GROUP}"' \
+    'export LD_PRELOAD=libnss_wrapper.so' \
+    'exec "$@"' \
+    > /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh
 
-# Add a new user/group called bldocker
 RUN groupadd -g 500001 bldocker && \
-    useradd -r -u 500001 -g bldocker bldocker
+    useradd -m -r -u 500001 -g bldocker bldocker
 
-#Change the default user to bldocker
 USER bldocker
 
-LABEL   maintainer="Yash Patel <ypatel@sbpdiscovery.org>" \
-        org.opencontainers.image.source=https://github.com/uclahs-cds/docker-Hail
+LABEL maintainer="Yash Patel <ypatel@sbpdiscovery.org>" \
+      org.opencontainers.image.source=https://github.com/TheBoutrosLab/docker-Hail \
+      org.opencontainers.image.description="Dockerfile for Hail"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
