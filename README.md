@@ -1,51 +1,50 @@
-# docker-tool_name
-Template Repository for the Boutros Lab Dockerfiles based on mambaforge base image.
-
-The base image is pulled from https://hub.docker.com/r/condaforge/mambaforge
-
-# Documentation
-Docker introduction [here](https://uclahs-cds.atlassian.net/wiki/spaces/BOUTROSLAB/pages/3190419/Docker+Introduction)
-
-Dockerfile Best Practices [here](https://uclahs-cds.atlassian.net/wiki/spaces/BOUTROSLAB/pages/3189770/Dockerfile+Best+Practices)
-
-Docker image versioning standard [here](https://uclahs-cds.atlassian.net/wiki/spaces/BOUTROSLAB/pages/3188472/Docker+image+versioning+standardization)
-
+# docker-Hail
+Boutros Lab Docker image for Hail.
 
 # Version
 | Tool | Version |
 |------|---------|
-|tool_name| X.X.X|
-|tool_name_2|X.X.X|
+| Hail | 0.2.138 |
+| Python | 3.10 |
+| OpenJDK | 11 |
+
+---
+
+## Runtime Notes
+
+- Includes `libnss-wrapper` so the container can run with arbitrary `uid:gid` mappings.
 
 ---
 
 ## Discussions
 
-- [Issue tracker](<link-to-issues-page>) to report errors and enhancement ideas.
-- Discussions can take place in [docker-<tool> Discussions](<link-to-discussions>)
-- [docker-<tool> pull requests](<link-to-pull-requests>) are also open for discussion
+- [Issue tracker](https://github.com/TheBoutrosLab/docker-Hail/issues) to report errors and enhancement ideas.
+- Discussions can take place in [docker-Hail Discussions](https://github.com/TheBoutrosLab/docker-Hail/discussions).
+- [docker-Hail pull requests](https://github.com/TheBoutrosLab/docker-Hail/pulls) are also open for discussion.
 
 ---
 
 ## Contributors
 
-Please see list of [Contributors](<link-to-contributors-insights>) at GitHub.
+Please see the list of [Contributors](https://github.com/TheBoutrosLab/docker-Hail/graphs/contributors) at GitHub.
 
 ---
 
 ## References
 
-1. Tool specific references can be listed here
+1. [Hail GitHub repository](https://github.com/hail-is/hail)
+2. [Hail documentation](https://hail.is/docs/0.2/)
+3. [Hail PyPI package](https://pypi.org/project/hail/)
 
 ---
 
 ## License
 
-Author: Name1, Name2
+Author: Yash Patel
 
-[docker repo name] is licensed under the GNU General Public License version 2. See the file LICENSE for the terms of the GNU GPL license.
+`docker-Hail` is licensed under the GNU General Public License version 2. See the file LICENSE for the terms of the GNU GPL license.
 
-<one line to give the program's name and a brief idea of what it does.>
+`docker-Hail` provides a Docker image for Hail.
 
 Copyright (C) 2026 Sanford Burnham Prebys Medical Discovery Institute ("Boutros Lab") All rights reserved.
 
