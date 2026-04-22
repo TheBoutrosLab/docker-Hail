@@ -1,28 +1,57 @@
 ARG MINIFORGE_VERSION=26.1.1-2
 ARG UBUNTU_VERSION=24.04
+ARG CONDA_ENV_PATH=/opt/conda/envs/hail
 
 FROM condaforge/miniforge3:${MINIFORGE_VERSION} AS builder
 
-# Use mamba to install tools and dependencies into /opt/conda/envs
-ARG TOOL_VERSION=X.X.X
+ARG CONDA_ENV_PATH
+ARG HAIL_VERSION=0.2.138
+ARG PYTHON_VERSION=3.10
+ARG OPENJDK_VERSION=11
 
-RUN mamba create -qy -p /opt/conda/envs \
-    -c bioconda \
+RUN mamba create -qy -p ${CONDA_ENV_PATH} \
     -c conda-forge \
-    tool_name==${TOOL_VERSION}
+    openjdk=${OPENJDK_VERSION} \
+    pip \
+    python=${PYTHON_VERSION} && \
+    ${CONDA_ENV_PATH}/bin/pip install --no-cache-dir "hail==${HAIL_VERSION}" && \
+    mamba clean -afy
 
-# Deploy the target tools into a base image
 FROM ubuntu:${UBUNTU_VERSION} AS final
-RUN mkdir -p /opt/conda
-COPY --from=builder /opt/conda/envs /opt/conda/envs
-ENV PATH="/opt/conda/envs/bin:$PATH"
 
-# Add a new user/group called bldocker
+ARG CONDA_ENV_PATH
+
+COPY --from=builder ${CONDA_ENV_PATH} ${CONDA_ENV_PATH}
+
+ENV CONDA_ENV_PATH="${CONDA_ENV_PATH}" \
+    PATH="${CONDA_ENV_PATH}/bin:${PATH}" \
+    NSS_WRAPPER_PASSWD=/tmp/passwd \
+    NSS_WRAPPER_GROUP=/tmp/group
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnss-wrapper \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /tmp/bldocker && \
+    chmod 777 /tmp/bldocker && \
+    printf '%s\n' \
+    '#!/bin/bash' \
+    'echo "bldocker:x:$(id -u):$(id -g):Custom User:/tmp/bldocker:/bin/bash" > "${NSS_WRAPPER_PASSWD}"' \
+    'echo "bldocker:x:$(id -g):" > "${NSS_WRAPPER_GROUP}"' \
+    'export LD_PRELOAD=libnss_wrapper.so' \
+    'exec "$@"' \
+    > /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
+
 RUN groupadd -g 500001 bldocker && \
-    useradd -r -u 500001 -g bldocker bldocker
+    useradd -m -r -u 500001 -g bldocker bldocker
 
-# Change the default user to bldocker from root
 USER bldocker
 
-LABEL   maintainer="Your Name <YourName@sbpdiscovery.org>" \
-        org.opencontainers.image.source=https://github.com/TheBoutrosLab/<REPO>
+LABEL maintainer="Yash Patel <ypatel@sbpdiscovery.org>" \
+      org.opencontainers.image.source=https://github.com/TheBoutrosLab/docker-Hail \
+      org.opencontainers.image.description="Dockerfile for Hail"
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+CMD ["/bin/bash"]
