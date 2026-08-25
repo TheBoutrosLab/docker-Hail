@@ -10,6 +10,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ---
+## [0.2.139] - 2026-08-25
+### Changed
+- Update Hail to `v0.2.139`
+
+---
 ## [0.2.138] - 2026-04-21
 ### Changed
 - Update Hail to `v0.2.138`
