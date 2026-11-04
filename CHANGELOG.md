@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.2.140] - 2026-11-04
 ### Changed
 - Update Hail to `v0.2.140`
+- Update Python to `v3.12`
 
 ---
 ## [0.2.139] - 2026-08-25
