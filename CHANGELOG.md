@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Update Hail to `v0.2.140`
 - Update Python to `v3.12`
+- Update OpenJDK to `v17`
 
 ---
 ## [0.2.139] - 2026-08-25

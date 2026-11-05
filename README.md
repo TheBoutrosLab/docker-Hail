@@ -6,7 +6,7 @@ Boutros Lab Docker image for Hail.
 |------|---------|
 | Hail | 0.2.140 |
 | Python | 3.12 |
-| OpenJDK | 11 |
+| OpenJDK | 17 |
 
 ---
 
